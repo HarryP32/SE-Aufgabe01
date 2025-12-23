@@ -1,4 +1,55 @@
-module poker
+package poker
 
-go 1.22
+import "testing"
 
+func TestHandEvaluation(t *testing.T) {
+	h := Hand{Cards: []Card{
+		{Hearts, Ten},
+		{Hearts, Jack},
+		{Hearts, Queen},
+		{Hearts, King},
+		{Hearts, Ace},
+	}}
+	if h.Evaluate() != RoyalFlush {
+		t.Fatal("expected Royal Flush")
+	}
+}
+
+func TestHandComparison(t *testing.T) {
+	h1 := Hand{Cards: []Card{
+		{Spades, Ace},
+		{Spades, King},
+		{Spades, Queen},
+		{Spades, Jack},
+		{Spades, Ten},
+	}}
+	h2 := Hand{Cards: []Card{
+		{Clubs, Nine},
+		{Clubs, Eight},
+		{Clubs, Seven},
+		{Clubs, Six},
+		{Clubs, Five},
+	}}
+	h1.Evaluate()
+	h2.Evaluate()
+
+	if h1.Compare(&h2) <= 0 {
+		t.Fatal("expected h1 to win")
+	}
+}
+
+func TestBestHandFromSeven(t *testing.T) {
+	cards := []Card{
+		{Hearts, Ace},
+		{Hearts, King},
+		{Hearts, Queen},
+		{Hearts, Jack},
+		{Hearts, Ten},
+		{Clubs, Two},
+		{Diamonds, Three},
+	}
+	best := BestHand(cards)
+	if best.Value != RoyalFlush {
+		t.Fatal("expected Royal Flush from 7 cards")
+	}
+}
