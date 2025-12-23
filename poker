@@ -1,4 +1,65 @@
-module poker
+package poker
 
-go 1.22
+import "sort"
 
+func evaluate(cards []Card) (HandVal, []Rank) {
+	rankCount := map[Rank]int{}
+	suitCount := map[Suit]int{}
+	var ranks []Rank
+
+	for _, c := range cards {
+		rankCount[c.Rank]++
+		suitCount[c.Suit]++
+		ranks = append(ranks, c.Rank)
+	}
+
+	sortRanksDesc(ranks)
+
+	isFlush := false
+	for _, c := range suitCount {
+		if c == 5 {
+			isFlush = true
+		}
+	}
+
+	isStraight, high := straightHigh(ranks)
+
+	if isStraight && isFlush {
+		if high == Ace {
+			return RoyalFlush, []Rank{Ace}
+		}
+		return StraightFlush, []Rank{high}
+	}
+
+	for r, c := range rankCount {
+		if c == 4 {
+			return FourOfAKind, []Rank{r}
+		}
+	}
+
+	if hasCount(rankCount, 3) && hasCount(rankCount, 2) {
+		return FullHouse, extractRanks(rankCount, []int{3, 2})
+	}
+
+	if isFlush {
+		return Flush, ranks
+	}
+
+	if isStraight {
+		return Straight, []Rank{high}
+	}
+
+	if hasCount(rankCount, 3) {
+		return ThreeOfAKind, extractRanks(rankCount, []int{3, 1})
+	}
+
+	if countPairs(rankCount) == 2 {
+		return TwoPairs, extractRanks(rankCount, []int{2, 2, 1})
+	}
+
+	if countPairs(rankCount) == 1 {
+		return OnePair, extractRanks(rankCount, []int{2, 1, 1, 1})
+	}
+
+	return HighCard, ranks
+}
