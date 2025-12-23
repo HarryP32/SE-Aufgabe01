@@ -1,4 +1,97 @@
-module poker
+package poker
 
-go 1.22
+import "sort"
 
+func hasCount(m map[Rank]int, n int) bool {
+	for _, c := range m {
+		if c == n {
+			return true
+		}
+	}
+	return false
+}
+
+func countPairs(m map[Rank]int) int {
+	c := 0
+	for _, v := range m {
+		if v == 2 {
+			c++
+		}
+	}
+	return c
+}
+
+func extractRanks(m map[Rank]int, pattern []int) []Rank {
+	var result []Rank
+	used := map[Rank]bool{}
+
+	for _, p := range pattern {
+		var candidates []Rank
+		for r, c := range m {
+			if c == p && !used[r] {
+				candidates = append(candidates, r)
+			}
+		}
+		sort.Slice(candidates, func(i, j int) bool {
+			return candidates[i] > candidates[j]
+		})
+		if len(candidates) > 0 {
+			r := candidates[0]
+			result = append(result, r)
+			used[r] = true
+		}
+	}
+	return result
+}
+
+func straightHigh(ranks []Rank) (bool, Rank) {
+	uniq := uniqueRanks(ranks)
+	if len(uniq) < 5 {
+		return false, 0
+	}
+	for i := 0; i <= len(uniq)-5; i++ {
+		if uniq[i]-uniq[i+4] == 4 {
+			return true, uniq[i]
+		}
+	}
+	// A-2-3-4-5
+	if uniq[0] == Ace &&
+		uniq[len(uniq)-1] == Two &&
+		uniq[len(uniq)-2] == Three &&
+		uniq[len(uniq)-3] == Four &&
+		uniq[len(uniq)-4] == Five {
+		return true, Five
+	}
+	return false, 0
+}
+
+func uniqueRanks(r []Rank) []Rank {
+	m := map[Rank]bool{}
+	var u []Rank
+	for _, v := range r {
+		if !m[v] {
+			u = append(u, v)
+			m[v] = true
+		}
+	}
+	return u
+}
+
+func combinations(cards []Card, k int) [][]Card {
+	var res [][]Card
+	var comb func(start int, cur []Card)
+
+	comb = func(start int, cur []Card) {
+		if len(cur) == k {
+			tmp := make([]Card, k)
+			copy(tmp, cur)
+			res = append(res, tmp)
+			return
+		}
+		for i := start; i < len(cards); i++ {
+			comb(i+1, append(cur, cards[i]))
+		}
+	}
+	comb(0, []Card{})
+	return res
+}
